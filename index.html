@@ -4,7 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tier表作成ツール</title>
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+  <!-- QRコード用ライブラリ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+
   <style>
     body {
       font-family: sans-serif;
@@ -24,7 +27,6 @@
       padding: 10px;
       border: 2px solid #ccc;
       border-radius: 10px;
-      flex-wrap: wrap;
     }
     .tier-label {
       width: 70px;
@@ -80,56 +82,17 @@
       display: block;
       margin-bottom: 15px;
     }
-    .instructions {
-      background: #fff;
-      padding: 15px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
-    }
-    .instructions h2 {
-      font-size: 1.2em;
+    #share-url {
+      width: 100%;
+      padding: 5px;
       margin-bottom: 10px;
-    }
-    .instructions ul {
-      padding-left: 20px;
-    }
-    #shared-url {
-      word-break: break-all;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      background: #fff;
-      padding: 10px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    @media (max-width: 600px) {
-      .tier-row {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .tier-label {
-        width: auto;
-      }
     }
   </style>
 </head>
 <body>
   <h1>Tier表作成ツール</h1>
 
-  <div class="instructions">
-    <h2>使い方ガイド</h2>
-    <ul>
-      <li><strong>画像をアップロード（未移動に追加）</strong></li>
-      <li><strong>ドラッグ＆ドロップ or タップ移動</strong></li>
-      <li><strong>×で削除、Tier名はクリックで編集可</strong></li>
-      <li><strong>JSON保存／読み込み</strong></li>
-      <li><strong>URLで共有＆QRコード</strong></li>
-    </ul>
-  </div>
-
   <div id="tier-container" class="tier-container">
-    <!-- Tiers -->
     <div class="tier-row" data-tier="S" style="background-color:#ffe5e5"><div class="tier-label" contenteditable>S</div><div class="tier-dropzone"></div></div>
     <div class="tier-row" data-tier="A" style="background-color:#fff0cc"><div class="tier-label" contenteditable>A</div><div class="tier-dropzone"></div></div>
     <div class="tier-row" data-tier="B" style="background-color:#e5ffe5"><div class="tier-label" contenteditable>B</div><div class="tier-dropzone"></div></div>
@@ -139,28 +102,23 @@
   </div>
 
   <div class="controls">
-    <label>画像をアップロード</label>
+    <label for="image-upload">画像をアップロード（未移動に追加）</label>
     <input type="file" id="image-upload" accept="image/*" multiple />
 
-    <label>現在のTier表を保存</label>
     <button id="save-btn">保存（JSON）</button>
-
-    <label>保存したTier表を読み込み</label>
     <input type="file" id="load-btn" accept="application/json" />
 
-    <label>現在のTier表をURL＋QRで共有</label>
-    <button id="share-btn">共有リンクを生成</button>
-    <div id="shared-url"></div>
-    <div id="qrcode"></div>
+    <hr>
+
+    <button id="generate-url">共有リンク生成</button>
+    <input type="text" id="share-url" readonly />
+    <canvas id="qrcode"></canvas>
   </div>
 
   <script>
     const uploadInput = document.getElementById('image-upload');
     const saveBtn = document.getElementById('save-btn');
     const loadBtn = document.getElementById('load-btn');
-    const shareBtn = document.getElementById('share-btn');
-    const sharedUrlDiv = document.getElementById('shared-url');
-    const qrcodeDiv = document.getElementById('qrcode');
 
     uploadInput.addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
@@ -218,7 +176,7 @@
     });
 
     saveBtn.addEventListener('click', () => {
-      const data = collectData();
+      const data = getTierData();
       const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -232,12 +190,12 @@
       const reader = new FileReader();
       reader.onload = function(evt) {
         const data = JSON.parse(evt.target.result);
-        restoreData(data);
+        loadTierData(data);
       };
       reader.readAsText(file);
     });
 
-    function collectData() {
+    function getTierData() {
       const data = [];
       document.querySelectorAll('.tier-row').forEach(row => {
         const label = row.querySelector('.tier-label').textContent;
@@ -247,7 +205,7 @@
       return data;
     }
 
-    function restoreData(data) {
+    function loadTierData(data) {
       const rows = document.querySelectorAll('.tier-row');
       rows.forEach((row, i) => {
         row.querySelector('.tier-label').textContent = data[i].label;
@@ -260,29 +218,33 @@
       });
     }
 
-    // URL共有とQRコード生成
-    shareBtn.addEventListener('click', () => {
-      const data = collectData();
-      const json = JSON.stringify(data);
-      const base64 = btoa(encodeURIComponent(json));
-      const url = `${location.origin}${location.pathname}?data=${base64}`;
-      sharedUrlDiv.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
-      qrcodeDiv.innerHTML = '';
-      new QRCode(qrcodeDiv, { text: url, width: 128, height: 128 });
+    // URL共有機能
+    document.getElementById('generate-url').addEventListener('click', () => {
+      const data = getTierData();
+      const encoded = encodeURIComponent(JSON.stringify(data));
+      const url = `${location.origin}${location.pathname}?data=${encoded}`;
+      document.getElementById('share-url').value = url;
+
+      new QRious({
+        element: document.getElementById('qrcode'),
+        value: url,
+        size: 200
+      });
     });
 
-    // 読み込み時にURLから復元
-    const params = new URLSearchParams(location.search);
-    if (params.has('data')) {
-      try {
-        const json = decodeURIComponent(atob(params.get('data')));
-        const data = JSON.parse(json);
-        restoreData(data);
-      } catch (e) {
-        alert('共有データの読み込みに失敗しました');
+    // ページ読み込み時に共有URLの内容を読み取る
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(location.search);
+      const dataParam = params.get('data');
+      if (dataParam) {
+        try {
+          const decoded = JSON.parse(decodeURIComponent(dataParam));
+          loadTierData(decoded);
+        } catch (e) {
+          console.error("データの読み込みに失敗しました", e);
+        }
       }
-    }
+    });
   </script>
 </body>
 </html>
-
