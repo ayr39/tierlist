@@ -2,69 +2,165 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>Tier表作成ツール（共有対応）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tier表作成ツール</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
   <style>
-    body { font-family: sans-serif; background: #f0f0f0; padding: 20px; }
-    .tier-container { display: flex; flex-direction: column; gap: 10px; }
-    .tier-row { display: flex; align-items: center; gap: 10px; background: #fff; padding: 10px; border: 2px solid #ccc; border-radius: 10px; }
-    .tier-label { width: 70px; font-weight: bold; cursor: pointer; }
-    .tier-dropzone { flex: 1; min-height: 80px; display: flex; flex-wrap: wrap; gap: 10px; border: 2px dashed #aaa; padding: 10px; border-radius: 10px; background: #fafafa; }
-    .tier-image-wrapper { position: relative; width: 60px; height: 60px; }
-    .tier-image { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; cursor: grab; }
-    .delete-btn { position: absolute; top: -8px; right: -8px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer; }
-    .controls { margin-top: 20px; }
-    .controls label { font-weight: bold; display: block; margin-bottom: 5px; }
-    .controls input, .controls button { display: block; margin-bottom: 10px; }
-    #qr { margin-top: 20px; }
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      padding: 20px;
+    }
+    .tier-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tier-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 10px;
+      flex-wrap: wrap;
+    }
+    .tier-label {
+      width: 70px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .tier-dropzone {
+      flex: 1;
+      min-height: 80px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      border: 2px dashed #aaa;
+      padding: 10px;
+      border-radius: 10px;
+      background: #fafafa;
+    }
+    .tier-image-wrapper {
+      position: relative;
+      width: 60px;
+      height: 60px;
+    }
+    .tier-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+      cursor: grab;
+    }
+    .delete-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .controls {
+      margin-top: 20px;
+    }
+    .controls label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    .controls input[type="file"],
+    .controls button {
+      display: block;
+      margin-bottom: 15px;
+    }
+    .instructions {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+    }
+    .instructions h2 {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+    }
+    .instructions ul {
+      padding-left: 20px;
+    }
+    #shared-url {
+      word-break: break-all;
+      margin-top: 10px;
+      margin-bottom: 10px;
+      background: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    @media (max-width: 600px) {
+      .tier-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .tier-label {
+        width: auto;
+      }
+    }
   </style>
 </head>
 <body>
-  <h1>Tier表作成ツール（共有対応）</h1>
+  <h1>Tier表作成ツール</h1>
+
+  <div class="instructions">
+    <h2>使い方ガイド</h2>
+    <ul>
+      <li><strong>画像をアップロード（未移動に追加）</strong></li>
+      <li><strong>ドラッグ＆ドロップ or タップ移動</strong></li>
+      <li><strong>×で削除、Tier名はクリックで編集可</strong></li>
+      <li><strong>JSON保存／読み込み</strong></li>
+      <li><strong>URLで共有＆QRコード</strong></li>
+    </ul>
+  </div>
 
   <div id="tier-container" class="tier-container">
-    <div class="tier-row" data-tier="S" style="background-color:#ffe5e5">
-      <div class="tier-label" contenteditable>S</div>
-      <div class="tier-dropzone"></div>
-    </div>
-    <div class="tier-row" data-tier="A" style="background-color:#fff0cc">
-      <div class="tier-label" contenteditable>A</div>
-      <div class="tier-dropzone"></div>
-    </div>
-    <div class="tier-row" data-tier="B" style="background-color:#e5ffe5">
-      <div class="tier-label" contenteditable>B</div>
-      <div class="tier-dropzone"></div>
-    </div>
-    <div class="tier-row" data-tier="C" style="background-color:#e5f0ff">
-      <div class="tier-label" contenteditable>C</div>
-      <div class="tier-dropzone"></div>
-    </div>
-    <div class="tier-row" data-tier="D" style="background-color:#f5e5ff">
-      <div class="tier-label" contenteditable>D</div>
-      <div class="tier-dropzone"></div>
-    </div>
-    <div class="tier-row" data-tier="未移動" style="background-color:#eeeeee">
-      <div class="tier-label" contenteditable>未移動</div>
-      <div class="tier-dropzone"></div>
-    </div>
+    <!-- Tiers -->
+    <div class="tier-row" data-tier="S" style="background-color:#ffe5e5"><div class="tier-label" contenteditable>S</div><div class="tier-dropzone"></div></div>
+    <div class="tier-row" data-tier="A" style="background-color:#fff0cc"><div class="tier-label" contenteditable>A</div><div class="tier-dropzone"></div></div>
+    <div class="tier-row" data-tier="B" style="background-color:#e5ffe5"><div class="tier-label" contenteditable>B</div><div class="tier-dropzone"></div></div>
+    <div class="tier-row" data-tier="C" style="background-color:#e5f0ff"><div class="tier-label" contenteditable>C</div><div class="tier-dropzone"></div></div>
+    <div class="tier-row" data-tier="D" style="background-color:#f5e5ff"><div class="tier-label" contenteditable>D</div><div class="tier-dropzone"></div></div>
+    <div class="tier-row" data-tier="未移動" style="background-color:#eeeeee"><div class="tier-label" contenteditable>未移動</div><div class="tier-dropzone"></div></div>
   </div>
 
   <div class="controls">
-    <label for="image-upload">画像をアップロード（未移動に追加）</label>
+    <label>画像をアップロード</label>
     <input type="file" id="image-upload" accept="image/*" multiple />
 
-    <button id="share-btn">共有リンク＋QRコードを生成</button>
-    <div>
-      <input type="text" id="share-url" readonly style="width:100%; margin-top:10px;">
-      <div id="qr"></div>
-    </div>
+    <label>現在のTier表を保存</label>
+    <button id="save-btn">保存（JSON）</button>
+
+    <label>保存したTier表を読み込み</label>
+    <input type="file" id="load-btn" accept="application/json" />
+
+    <label>現在のTier表をURL＋QRで共有</label>
+    <button id="share-btn">共有リンクを生成</button>
+    <div id="shared-url"></div>
+    <div id="qrcode"></div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script>
     const uploadInput = document.getElementById('image-upload');
+    const saveBtn = document.getElementById('save-btn');
+    const loadBtn = document.getElementById('load-btn');
     const shareBtn = document.getElementById('share-btn');
-    const shareUrlInput = document.getElementById('share-url');
-    const qrContainer = document.getElementById('qr');
+    const sharedUrlDiv = document.getElementById('shared-url');
+    const qrcodeDiv = document.getElementById('qrcode');
 
     uploadInput.addEventListener('change', (e) => {
       const files = Array.from(e.target.files);
@@ -121,49 +217,72 @@
       });
     });
 
-    // 共有リンク生成
-    shareBtn.addEventListener('click', () => {
+    saveBtn.addEventListener('click', () => {
+      const data = collectData();
+      const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'tierlist.json';
+      link.click();
+    });
+
+    loadBtn.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = JSON.parse(evt.target.result);
+        restoreData(data);
+      };
+      reader.readAsText(file);
+    });
+
+    function collectData() {
       const data = [];
       document.querySelectorAll('.tier-row').forEach(row => {
         const label = row.querySelector('.tier-label').textContent;
         const images = Array.from(row.querySelectorAll('img')).map(img => img.src);
         data.push({ label, images });
       });
-      const json = JSON.stringify(data);
-      const encoded = encodeURIComponent(btoa(json));
-      const url = `${location.origin}${location.pathname}?data=${encoded}`;
-      shareUrlInput.value = url;
+      return data;
+    }
 
-      const qr = new QRious({
-        element: document.createElement('canvas'),
-        value: url,
-        size: 200
+    function restoreData(data) {
+      const rows = document.querySelectorAll('.tier-row');
+      rows.forEach((row, i) => {
+        row.querySelector('.tier-label').textContent = data[i].label;
+        const dropzone = row.querySelector('.tier-dropzone');
+        dropzone.innerHTML = '';
+        data[i].images.forEach(src => {
+          const wrapper = createImageWrapper(src);
+          dropzone.appendChild(wrapper);
+        });
       });
-      qrContainer.innerHTML = '';
-      qrContainer.appendChild(qr.element);
+    }
+
+    // URL共有とQRコード生成
+    shareBtn.addEventListener('click', () => {
+      const data = collectData();
+      const json = JSON.stringify(data);
+      const base64 = btoa(encodeURIComponent(json));
+      const url = `${location.origin}${location.pathname}?data=${base64}`;
+      sharedUrlDiv.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+      qrcodeDiv.innerHTML = '';
+      new QRCode(qrcodeDiv, { text: url, width: 128, height: 128 });
     });
 
-    // URLから復元
+    // 読み込み時にURLから復元
     const params = new URLSearchParams(location.search);
-    const encoded = params.get("data");
-    if (encoded) {
+    if (params.has('data')) {
       try {
-        const json = atob(decodeURIComponent(encoded));
+        const json = decodeURIComponent(atob(params.get('data')));
         const data = JSON.parse(json);
-        const rows = document.querySelectorAll('.tier-row');
-        rows.forEach((row, i) => {
-          row.querySelector('.tier-label').textContent = data[i].label;
-          const dropzone = row.querySelector('.tier-dropzone');
-          dropzone.innerHTML = '';
-          data[i].images.forEach(src => {
-            const wrapper = createImageWrapper(src);
-            dropzone.appendChild(wrapper);
-          });
-        });
+        restoreData(data);
       } catch (e) {
-        alert('データの復元に失敗しました');
+        alert('共有データの読み込みに失敗しました');
       }
     }
   </script>
 </body>
 </html>
+
