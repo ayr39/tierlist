@@ -195,15 +195,15 @@
       reader.readAsText(file);
     });
 
-    function getTierData() {
-      const data = [];
-      document.querySelectorAll('.tier-row').forEach(row => {
-        const label = row.querySelector('.tier-label').textContent;
-        const images = Array.from(row.querySelectorAll('img')).map(img => img.src);
-        data.push({ label, images });
-      });
-      return data;
-    }
+function getTierDataWithoutImages() {
+  const data = [];
+  document.querySelectorAll('.tier-row').forEach(row => {
+    const label = row.querySelector('.tier-label').textContent;
+    const imageCount = row.querySelectorAll('img').length;
+    data.push({ label, count: imageCount }); // 画像の枚数だけ記録（参考用）
+  });
+  return data;
+}
 
     function loadTierData(data) {
       const rows = document.querySelectorAll('.tier-row');
