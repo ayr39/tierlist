@@ -219,18 +219,18 @@
     }
 
     // URL共有機能
-    document.getElementById('generate-url').addEventListener('click', () => {
-      const data = getTierData();
-      const encoded = encodeURIComponent(JSON.stringify(data));
-      const url = `${location.origin}${location.pathname}?data=${encoded}`;
-      document.getElementById('share-url').value = url;
+document.getElementById('generate-url').addEventListener('click', () => {
+  const data = getTierData();
+  const encoded = encodeURIComponent(JSON.stringify(data));
+  const url = `${location.href.split('?')[0]}?data=${encoded}`;
+  document.getElementById('share-url').value = url;
 
-      new QRious({
-        element: document.getElementById('qrcode'),
-        value: url,
-        size: 200
-      });
-    });
+  new QRious({
+    element: document.getElementById('qrcode'),
+    value: url,
+    size: 200
+  });
+});
 
     // ページ読み込み時に共有URLの内容を読み取る
     window.addEventListener('DOMContentLoaded', () => {
