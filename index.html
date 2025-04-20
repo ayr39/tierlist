@@ -71,6 +71,18 @@
     canvas {
       margin-top: 10px;
     }
+
+    #copy-btn {
+  padding: 5px 10px;
+  background-color: #2d8cf0;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+#copy-btn:hover {
+  background-color: #1a75d1;
+}
   </style>
 </head>
 <body>
@@ -109,6 +121,12 @@
     <input type="text" id="share-url" readonly style="width:100%; margin-top:10px;" />
     <canvas id="qrcode"></canvas>
   </div>
+
+  <div id="share-section" style="margin-top: 20px;">
+  <p>共有リンク: <a id="share-link" href="#" target="_blank"></a></p>
+  <button id="copy-btn">リンクをコピー</button>
+  <canvas id="qr-canvas"></canvas>
+</div>
 
   <!-- QRコード生成ライブラリ -->
   <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
@@ -217,6 +235,22 @@
         }
       }
     });
+
+  const shareLink = document.getElementById('share-link');
+  const copyBtn = document.getElementById('copy-btn');
+
+  copyBtn.addEventListener('click', () => {
+    const url = shareLink.href;
+    navigator.clipboard.writeText(url).then(() => {
+      copyBtn.textContent = 'コピーしました！';
+      setTimeout(() => {
+        copyBtn.textContent = 'リンクをコピー';
+      }, 2000);
+    }).catch(err => {
+      console.error('コピーに失敗しました', err);
+      alert('コピーに失敗しました');
+    });
+  });
   </script>
 </body>
 </html>
